@@ -1,18 +1,33 @@
+"""
+count_occupancy_deepsort.py
+----------------------------
+
+Compute per-frame occupancy counts from DeepSORT tracking outputs.
+
+This script implements the DeepSORT tracking pipeline described in:
+
+"Experimental Study on Surveillance Video-Based Indoor Occupancy Measurement 
+for Occupant-Centric Control" (citation will be available after publication).
+
+Outputs a CSV per video containing:
+- frame_idx
+- timestamp_sec (if available)
+- occupancy count
+- status ("occupied"/"unoccupied")
+"""
+
 import argparse
 from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
 
-# -------------------------
-# Default configuration
-# -------------------------
-ROOT = Path(r"D:\PythonCode\FIT622_processed")
+# Default output filename and threshold
 OUT_NAME = "final_deepsort.csv"
-OCCUPIED_THRESH = 1   # occupied if count >= 1
+OCCUPIED_THRESH = 1  # occupied if count >= 1
 
 
 def find_video_dirs(root: Path):
-    """Find video folders that contain DeepSORT tracks."""
+    """Find video directories that contain DeepSORT tracks."""
     video_dirs = []
     for date_dir in sorted(root.iterdir()):
         if not date_dir.is_dir():
@@ -23,7 +38,8 @@ def find_video_dirs(root: Path):
     return video_dirs
 
 
-def count_occupancy(video_dir: Path, force=False):
+def count_occupancy(video_dir: Path, force: bool = False):
+    """Build per-frame occupancy counts from DeepSORT tracks."""
     tracks_csv = video_dir / "tracks_deepsort.csv"
     out_csv = video_dir / OUT_NAME
 
@@ -52,20 +68,21 @@ def count_occupancy(video_dir: Path, force=False):
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--root", type=str, default=str(ROOT))
-    ap.add_argument("--force", action="store_true",
-                    help="Overwrite existing final_deepsort.csv")
-    args = ap.parse_args()
+    parser = argparse.ArgumentParser(description="Compute per-frame occupancy counts from DeepSORT tracks.")
+    parser.add_argument("--root", type=str, required=True,
+                        help="Root folder containing date/video directories.")
+    parser.add_argument("--force", action="store_true",
+                        help="Overwrite existing final_deepsort.csv")
+    args = parser.parse_args()
 
     root = Path(args.root)
-    assert root.exists(), f"Root not found: {root}"
+    if not root.exists():
+        raise FileNotFoundError(f"Root not found: {root}")
 
     video_dirs = find_video_dirs(root)
     print(f"[INFO] Found {len(video_dirs)} videos with DeepSORT tracks.")
 
     done = skipped = failed = 0
-
     for vid_dir in tqdm(video_dirs, desc="DeepSORT occupancy", unit="video"):
         try:
             res = count_occupancy(vid_dir, force=args.force)
@@ -79,9 +96,8 @@ def main():
             failed += 1
             print(f"[ERROR] {vid_dir.name}: {e}")
 
-    print(f"[DONE] DeepSORT occupancy complete.")
-    print(f"       done={done}, skipped={skipped}, failed={failed}")
-    print(f"[INFO] Output per video: <video_dir>\\{OUT_NAME}")
+    print(f"[DONE] DeepSORT occupancy complete. done={done}, skipped={skipped}, failed={failed}")
+    print(f"[INFO] Output per video: <video_dir>/{OUT_NAME}")
 
 
 if __name__ == "__main__":
