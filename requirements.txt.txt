@@ -1,0 +1,30 @@
+# Core dependencies
+numpy>=1.24
+pandas>=2.1
+opencv-python>=4.8
+tqdm>=4.66
+
+# YOLOv8 / Ultralytics
+ultralytics>=8.0.0
+
+# PyTorch for YOLOv8 and LLM processing
+torch>=2.1.0
+torchvision>=0.18.0
+
+# Tracking
+filterpy>=1.4.5
+scipy>=1.11.0
+lap>=0.4.0
+motmetrics>=1.2.0
+
+# LLM / DeepSeek API
+requests>=2.32.0
+python-dotenv>=1.0.0
+jsonschema>=4.21.0
+
+# Visualization / plotting
+matplotlib>=3.8
+seaborn>=0.12.2
+
+# Image handling
+Pillow>=10.0
